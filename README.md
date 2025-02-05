@@ -59,7 +59,12 @@ Configure Git to Sign Commits
 git config --global user.signingkey YOUR_GPG_KEY_ID
 git config --global commit.gpgsign true
 
+# Add GPG agent for easier signing:
+echo "use-agent" >> ~/.gnupg/gpg.conf
+echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+
 # Make a test commit
+git add README.md
 git commit -S -m "Signed commit test"
 git log --show-signature -1
 ```
