@@ -147,3 +147,18 @@ jobs:
         --skip-git
         ./
 ```
+
+### Fix Django version
+
+Set `Django==4.0.1` to test dependancy scanning.
+
+Use `Django==5.1.5` to get the latest version.
+
+
+### Fix secret in code
+
+Add `import os`
+
+Set `SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]`
+
+Run the commad: `export DJANGO_SECRET_KEY="your-very-secure-secret-key"`
