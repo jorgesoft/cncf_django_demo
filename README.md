@@ -68,3 +68,82 @@ git add README.md
 git commit -S -m "Signed commit test"
 git log --show-signature -1
 ```
+
+### Add GitHub Actions flow for scanning
+
+1. Add Bandit scanning
+
+Add it from /actions/new?category=security or:
+
+```
+name: Bandit
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  schedule:
+    - cron: '35 4 * * 4'
+
+jobs:
+  bandit:
+    permissions:
+      contents: read 
+      security-events: write 
+      actions: read 
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bandit Scan
+        uses: shundor/python-bandit-scan@9cc5aa4a006482b8a7f91134412df6772dbda22c
+        with: # optional arguments
+          path: "./cncf_demo"
+          
+          exit_zero: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+```
+Make sure to add "path: "./cncf_demo" under -steps.with
+
+2. Add OSV Scanning
+
+Add it from /actions/new?category=security or:
+
+```
+name: OSV-Scanner
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  merge_group:
+    branches: [ "main" ]
+  schedule:
+    - cron: '21 4 * * 1'
+  push:
+    branches: [ "main" ]
+
+permissions:
+  security-events: write
+  contents: read
+
+jobs:
+  scan-scheduled:
+    if: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@1f1242919d8a60496dd1874b24b62b2370ed4c78" # v1.7.1
+    with:
+      # Example of specifying custom arguments
+      scan-args: |-
+        -r
+        --skip-git
+        ./
+  scan-pr:
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@1f1242919d8a60496dd1874b24b62b2370ed4c78" # v1.7.1
+    with:
+      # Example of specifying custom arguments
+      scan-args: |-
+        -r
+        --skip-git
+        ./
+```
